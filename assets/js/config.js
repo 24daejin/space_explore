@@ -4,11 +4,8 @@ window.GUIDE_LINKS = {
   // AIEP 계정 로그인 페이지
   usedu: 'https://usedu.ai.kr',
 
-  // AI 활용기록카드 웹앱 (학번 + 비밀번호 로그인)
-  aiCard: 'https://script.google.com/a/usedu.ai.kr/macros/s/AKfycbylhBbrwz6LPZn6WFqx4sYQ1794G6xf9nU3mRQsmQ9owCsDSkt7/exec',
-
-  // 결석 시 보충 일정 신청 웹앱 (주소가 정해지면 입력)
-  makeup: '',
+  // ※ AI 활용기록카드·보충 일정 신청(앱스크립트)은 학교 계정에서만 열리므로
+  //   이 페이지에 링크를 두지 않고, 캔바 문서 안의 링크로 안내합니다.
 
   // 1차시 캔바 과제(개인 조사 요약) 링크 (선택, 정해지면 입력)
   canvaAssignment: ''
