@@ -194,7 +194,7 @@ p { margin: 0 0 10px; }
 .scores .pts {
   margin: 0; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums;
 }
-.scores .pts::after { content: "��"; font-size: 13px; font-weight: 400; margin-left: 1px; }
+.scores .pts::after { content: "점"; font-size: 13px; font-weight: 400; margin-left: 1px; }
 .scores .desc { grid-column: 1 / -1; margin: 2px 0 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
 
 .promises { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
@@ -216,7 +216,7 @@ p { margin: 0 0 10px; }
 .mistakes { margin: 0 0 12px; padding-left: 0; list-style: none; display: grid; gap: 6px; }
 .mistakes li { position: relative; padding-left: 28px; }
 .mistakes li::before {
-  content: "횞"; position: absolute; left: 0; top: 0;
+  content: "×"; position: absolute; left: 0; top: 0;
   width: 20px; text-align: center; font-weight: 700; color: var(--warn);
 }
 
@@ -251,7 +251,7 @@ p { margin: 0 0 10px; }
   background: var(--accent); color: var(--surface);
   font-weight: 700; text-decoration: none; border: 2px solid var(--accent);
 }
-.btn::after { content: "��"; margin-left: 6px; font-weight: 400; }
+.btn::after { content: "↗"; margin-left: 6px; font-weight: 400; }
 .btn.ghost { background: transparent; color: var(--accent); }
 .btn.small { min-height: 38px; padding: 4px 14px; font-size: 15px; }
 .btn:hover { filter: brightness(1.08); }
@@ -275,4 +275,12 @@ p { margin: 0 0 10px; }
   .track-line { top: 19px; }
   .steps > li { padding-left: 46px; }
   .flow li { grid-template-columns: 56px 1fr; }
+}
+
+/* 캔바 안의 버튼 이름을 보여 주는 표시 */
+.chip {
+  display: inline-block; padding: 0 8px; margin: 0 1px;
+  border: 1px solid var(--accent); border-radius: 6px;
+  background: var(--surface); color: var(--accent);
+  font-size: .9em; font-weight: 700; line-height: 1.6; white-space: nowrap;
 }
