@@ -295,3 +295,9 @@ p { margin: 0 0 10px; }
 .ai-pick p:last-child { margin: 0; }
 .ai-pick-title { font-weight: 700; color: var(--accent); margin-bottom: 6px; }
 .ai-pick ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+
+/* figure: diagram image inside a step */
+.figure { margin: 14px 0 12px; }
+.figure a { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #f4f2ed; }
+.figure img { display: block; width: 100%; height: auto; }
+.figure figcaption { margin-top: 6px; color: var(--muted); font-size: 14px; }
