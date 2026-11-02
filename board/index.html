@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>모둠 토론 보드</title>
+<style>
+  :root{--bg:#f4f7fb;--card:#fff;--ink:#26364a;--sub:#6b7a8f;--line:#dde5ef;--main:#4f7cc4;--main-d:#3d65a6;--soft:#eaf1fb;
+    --warm:#fff6e5;--warm-ink:#8a5a00;--ok:#e8f6ee;--ok-ink:#1f6b3f;--warn:#fdecec;--warn-ink:#a33a3a;--star:#e08a00}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.55;-webkit-text-size-adjust:100%;word-break:keep-all}
+  .wrap{max-width:980px;margin:0 auto;padding:16px 16px 56px}
+  h1{font-size:20px;margin:6px 0}
+  .hello{background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px;color:#33507c;margin:8px 0 14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 12px}
+  .panel h2{font-size:16px;margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  label{display:block;font-size:13px;color:var(--sub);margin:12px 0 5px}
+  input[type=text],input[type=password],textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+  textarea{min-height:64px;resize:vertical}
+  input:focus,textarea:focus{outline:2px solid #b9cdee;border-color:var(--main)}
+  .hint{font-size:12.5px;color:var(--sub);margin-top:5px}
+  button{font:inherit;font-size:15px;border:0;border-radius:12px;padding:11px 16px;cursor:pointer}
+  .primary{background:var(--main);color:#fff;font-weight:600}.primary:disabled{background:#b7c4d8}
+  .wide{width:100%}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .small{font-size:13px;padding:6px 12px;border-radius:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer;user-select:none}
+  .chip.on{background:var(--main);border-color:var(--main);color:#fff}
+  .chip.off{opacity:.45;cursor:not-allowed}
+  .chip .t{font-size:11px;opacity:.8;margin-left:4px}
+  .msg{border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0}
+  .err{background:var(--warn);color:var(--warn-ink)}.soft{background:var(--warm);color:var(--warm-ink)}.okm{background:var(--ok);color:var(--ok-ink)}
+  .hidden{display:none!important}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .who{font-weight:800;font-size:17px}
+  .tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--soft);color:#33507c;font-weight:600}
+  .tag.ok{background:var(--ok);color:var(--ok-ink)}.tag.warm{background:var(--warm);color:var(--warm-ink)}
+  .stars{font-size:20px;letter-spacing:2px;color:var(--star)}
+  .stars .e{color:#d3d9e3}
+  .f0{background:#FFF1B8}.f1{background:#FFD9C7}.f2{background:#D9EEFF}.f3{background:#DDF3D6}.f4{background:#EEE3FF}
+  .fchip.f0.on,.fchip.f1.on,.fchip.f2.on,.fchip.f3.on,.fchip.f4.on{color:var(--ink);border-color:#26364a;box-shadow:inset 0 0 0 1px #26364a;font-weight:700}
+  .opt{margin-top:14px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:#fafbfd}
+  .opt label{margin-top:8px}
+  .optT{font-size:13px;font-weight:700;color:var(--sub);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mycards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mine{border:1px solid var(--line);border-radius:14px;padding:12px}
+  .mine h3{margin:0 0 4px;font-size:15px}
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .col h3{font-size:14px;text-align:center;margin:0 0 8px;color:var(--sub)}
+  .col h3.me{color:var(--main-d)}
+  .sticky{border-radius:10px;padding:10px 11px;margin-bottom:10px;min-height:120px;box-shadow:0 2px 6px rgba(20,26,46,.1);position:relative;font-size:14px}
+  .sticky.empty{background:#f1f3f7;color:#9aa3b2;box-shadow:none;border:1.5px dashed #cfd5df;display:flex;align-items:center;justify-content:center;text-align:center}
+  .sticky .nm{font-weight:800;font-size:16px;line-height:1.3}
+  .sticky .fd{font-size:12px;color:#5b5140;font-weight:700}
+  .sticky .fc{margin:6px 0}
+  .sticky .id{font-size:13px;color:#4a4033}
+  .sticky.win{outline:3px solid var(--star)}
+  .vbtn{margin-top:8px;width:100%;font-size:14px;padding:8px;border-radius:10px;background:#fff;border:1.5px solid #e2c68b;color:#8a5a00;font-weight:700}
+  .vbtn.on{background:var(--star);border-color:var(--star);color:#fff}
+  .vbtn:disabled{opacity:.5;cursor:not-allowed}
+  .count{position:absolute;right:-6px;top:-10px;background:var(--star);color:#fff;font-weight:800;border-radius:999px;padding:2px 10px;font-size:14px}
+  .badge{display:inline-block;background:#141a2e;color:#fff;border-radius:999px;font-size:11px;padding:1px 8px;margin-left:4px;vertical-align:2px}
+  .seats{display:flex;gap:8px}.seats .chip{flex:1;text-align:center;border-radius:12px}
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .steps span{font-size:12.5px;padding:4px 10px;border-radius:999px;background:#eef1f6;color:var(--sub)}
+  .steps span.now{background:var(--main);color:#fff;font-weight:700}
+  .steps span.done{background:var(--ok);color:var(--ok-ink)}
+  .foot{font-size:12px;color:var(--sub);text-align:center;margin-top:18px}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .invite{text-align:center}
+  .invite #qrBox{display:inline-block;background:#fff;padding:12px;border-radius:12px;border:1px solid var(--line);margin:8px 0}
+  .invite #qrBox img,.invite #qrBox canvas{display:block}
+  .invite .url{font-size:11px;color:var(--sub);word-break:break-all}
+  @media (max-width:720px){ .mycards{grid-template-columns:1fr} .board{grid-template-columns:1fr 1fr} }
+  @media (max-width:420px){ .board{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">모둠 토론 보드</h1>
+  <div class="hello" id="notice">불러오는 중이에요…</div>
+
+  <!-- 1. 반·모둠 고르기 -->
+  <div id="vPick" class="panel hidden">
+    <h2>우리 반과 모둠</h2>
+    <label>반</label><div class="chips" id="clsChips"></div>
+    <label>모둠</label><div class="chips" id="grpChips"></div>
+    <div id="ePick" class="msg err hidden"></div>
+  </div>
+
+  <!-- 2-1. 모둠 만들기(모둠장) -->
+  <div id="vMake" class="panel hidden">
+    <h2>아직 없는 모둠이에요 <span class="tag warm">모둠장이 만들어요</span></h2>
+    <div class="hint" style="margin:0">모둠장이 아니라면 모둠장이 만들 때까지 기다렸다가 <button id="bRecheck" class="ghost small" type="button">다시 확인</button></div>
+    <label>모둠 인원</label><div class="seats" id="sizeChips"></div>
+    <label for="mPw">모둠 비밀번호 만들기</label>
+    <input id="mPw" type="text" autocomplete="off" maxlength="12" placeholder="짧은 말이면 돼요 (예: 별4)">
+    <div class="hint">만들면 초대 QR이 나와요. 모둠원은 QR을 찍으면 비밀번호 없이 들어와요. QR이 안 될 때만 비밀번호를 써요.</div>
+    <label>내 자리 (모둠원 A~D)</label><div class="seats" id="mSeat"></div>
+    <div id="eMake" class="msg err hidden"></div>
+    <div style="height:10px"></div>
+    <button id="bMake" class="primary wide" type="button">모둠 만들고 들어가기</button>
+  </div>
+
+  <!-- 2-2. 들어가기(모둠원) -->
+  <div id="vJoin" class="panel hidden">
+    <h2 id="jTitle">모둠에 들어가기</h2>
+    <div id="jQr" class="msg okm hidden">QR로 들어왔어요. 내 자리만 고르면 돼요.</div>
+    <div id="jPwBox"><label for="jPw">모둠 비밀번호</label>
+    <input id="jPw" type="text" autocomplete="off" maxlength="12" placeholder="모둠장에게 받은 비밀번호"></div>
+    <label>내 자리 (모둠원 A~D)</label><div class="seats" id="jSeat"></div>
+    <div class="hint">사용 중인 자리는 다른 기기에서 쓰고 있다는 뜻이에요. 내 자리를 다른 기기에서 이어서 쓰려면 그 자리를 골라요.</div>
+    <div id="eJoin" class="msg err hidden"></div>
+    <div style="height:10px"></div>
+    <button id="bJoin" class="primary wide" type="button">들어가기</button>
+    <div style="height:8px"></div>
+    <button id="bBack" class="ghost small" type="button">반·모둠 다시 고르기</button>
+  </div>
+
+  <!-- 3. 보드 -->
+  <div id="vBoard" class="hidden">
+    <div class="panel">
+      <div class="top">
+        <div><div class="who" id="who"></div>
+          <div class="steps"><span id="st1">① 카드 쓰기</span><span id="st2">② 투표</span><span id="st3">③ 결과</span></div></div>
+        <div style="display:flex;gap:6px"><button id="bInv" class="ghost small" type="button">초대 QR</button>
+        <button id="bOut" class="ghost small" type="button">나가기</button></div>
+      </div>
+      <div id="invite" class="msg soft invite hidden">
+        <b id="invTitle">모둠원 초대 QR</b><br>
+        <span id="invSub">모둠원이 휴대폰·태블릿 카메라로 찍으면 바로 우리 모둠으로 들어와요.</span><br>
+        <div id="qrBox"></div>
+        <div class="url" id="invUrl"></div>
+        <button id="bInvClose" class="ghost small" type="button" style="margin-top:8px">QR 닫기</button>
+      </div>
+      <div id="eBoard" class="msg err hidden"></div>
+    </div>
+
+    <div class="panel" id="pMine">
+      <h2>① 내 카드 2장 <span class="tag" id="mineTag"></span></h2>
+      <div class="hint" style="margin:0 0 10px">내 캔바 문서를 보며 옮겨요. 두 장은 분야가 서로 달라야 하고, 모둠 안에서 사례가 겹치면 안 돼요.</div>
+      <div class="mycards" id="mycards"></div>
+    </div>
+
+    <div class="panel">
+      <h2>② 투표 <span class="stars" id="myStars"></span></h2>
+      <div id="voteLine" class="hint" style="margin:0 0 10px"></div>
+      <div id="result" class="msg okm hidden"></div>
+      <div class="board" id="board"></div>
+      <div id="leadBox" class="msg soft hidden">
+        <b>모둠장 메뉴</b><br>
+        결석한 친구가 있어 모두 투표할 수 없다면 지금 결과를 공개해요.
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button id="bOpen" class="ghost small" type="button">지금 결과 공개</button>
+          <button id="bSize" class="ghost small" type="button"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">이 보드는 점수에 들어가지 않아요. 이름은 쓰지 않고 모둠원 A~D로만 보여요.<br><span id="ver"></span></div>
+</div>
+
+<script src="config.js"></script>
+<script>
+/* 깃허브 페이지용: google.script.run 을 앱스크립트 통로(doPost) 호출로 바꿔요.
+   구글 로그인 정보(쿠키)를 보내지 않아서, 계정이 여러 개 로그인된 기기에서도 열려요. */
+(function(){
+  var API = String(window.BOARD_API || '').trim();
+  function post(fn, arg){
+    if (!API) return Promise.reject(new Error('NO_API'));
+    return fetch(API, { method: 'POST', redirect: 'follow', credentials: 'omit',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, arg: arg == null ? {} : arg }) })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function runner(ok, fail){
+    return new Proxy({}, { get: function(t, n){
+      if (n === 'withSuccessHandler') return function(f){ return runner(f, fail); };
+      if (n === 'withFailureHandler') return function(f){ return runner(ok, f); };
+      return function(a){ post(n, a).then(function(r){ if (ok) ok(r); }, function(e){ if (fail) fail(e); }); };
+    }});
+  }
+  var params = {};
+  try { new URLSearchParams(location.search).forEach(function(v, k){ params[k] = v; }); } catch(e){}
+  window.google = { script: { run: runner(null, null), url: { getLocation: function(cb){ cb({ parameter: params, hash: location.hash.slice(1) }); } } } };
+  if (!API) document.addEventListener('DOMContentLoaded', function(){
+    var n = document.getElementById('notice'); if (n) n.textContent = '선생님: board/config.js 에 앱스크립트 주소(BOARD_API)를 넣어 주세요.';
+  });
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  var APP_VER = '2026-11-03';
+  var $ = function(id){ return document.getElementById(id); };
+  var CFG = null, PICK = { cls:'', grp:'' }, KEY = '', INFO = null, S = null, TOKEN = null, VER = '', makeSize = 4, makeSeat = '', joinSeat = '', timer = null;
+  var SEATS = ['A','B','C','D'];
+  $('ver').textContent = '화면 버전 ' + APP_VER;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function show(el, on){ el.classList.toggle('hidden', !on); }
+  function only(id){ ['vPick','vMake','vJoin','vBoard'].forEach(function(v){ show($(v), v === id || (id === 'vMake' && v === 'vPick') || (id === 'vJoin' && v === 'vPick')); }); }
+  function say(id, text, cls){ var e = $(id); if (text){ e.textContent = text; e.className = 'msg ' + (cls || 'err'); show(e, true); } else show(e, false); }
+  function busy(b, on, t){ if (!b) return; if (on){ b.dataset.t = b.textContent; b.disabled = true; b.innerHTML = '<span class="spin"></span>' + t; } else { b.disabled = false; b.textContent = b.dataset.t || b.textContent; } }
+  function store(o){ try { if (o) localStorage.setItem('board_t', JSON.stringify(o)); else localStorage.removeItem('board_t'); } catch(e){} }
+  function stored(){ try { return JSON.parse(localStorage.getItem('board_t') || 'null'); } catch(e){ return null; } }
+  function call(fn, arg, ok, errId, btn){
+    google.script.run.withSuccessHandler(function(r){
+      busy(btn, false);
+      if (r && r.relogin){ toPick(r.error); return; }
+      if (r && r.state){ apply(r.state); }
+      if (r && r.error){ if (errId) say(errId, r.error); return; }
+      ok && ok(r);
+    }).withFailureHandler(function(){ busy(btn, false); if (errId) say(errId, '잠깐 연결이 원활하지 않았어요. 다시 눌러 주세요.'); })[fn](arg);
+  }
+  function chipRow(box, items, cur, onPick, label, disabled){
+    box.innerHTML = '';
+    items.forEach(function(v){
+      var c = document.createElement('span'); c.className = 'chip' + (String(v) === String(cur) ? ' on' : '') + (disabled && disabled(v) ? ' off' : '');
+      c.innerHTML = label ? label(v) : esc(v);   // label은 숫자·자리 글자로만 만들어요
+      c.onclick = function(){ onPick(v); };
+      box.appendChild(c);
+    });
+  }
+
+  /* 시작 */
+  /* QR로 열었을 때 주소 뒤의 ?c=반&g=모둠&k=입장코드 읽기 (템플릿 없이 브라우저에서 읽어요) */
+  var BOOT = {};
+  function readQuery(done){
+    var fin = function(p){
+      p = p || {}; var ok = function(v, re){ v = String(v == null ? '' : v); return re.test(v) ? v : ''; };
+      BOOT = { c: ok(p.c, /^[0-9A-Za-z가-힣]{1,4}$/), g: ok(p.g, /^\d{1,2}$/), k: ok(p.k, /^[0-9a-f]{10}$/) }; done();
+    };
+    try { google.script.url.getLocation(function(loc){ fin(loc && loc.parameter); }); }
+    catch(e){ fin({}); }
+  }
+
+  readQuery(function(){ google.script.run.withSuccessHandler(function(c){
+    if (!c || c.error){ $('notice').textContent = '설정을 불러오지 못했어요. 새로고침해 보고, 안 되면 선생님께 알려 주세요.'; return; }
+    CFG = c; $('title').textContent = c.title; document.title = c.title;
+    $('notice').textContent = c.notice || '카드 2장을 쓰고, 친구 카드 2장에 ★를 줘요.';
+    if (c.ver !== APP_VER){ $('ver').textContent = '화면 ' + APP_VER + ' / 서버 ' + (c.ver || '예전 파일') + ' — 버전이 달라요. 선생님께 알려 주세요.'; $('ver').style.color = '#a33a3a'; }
+    var t = stored(), q = BOOT || {};
+    var viaQr = q.c && q.g && c.classes.indexOf(q.c) >= 0;
+    if (t && t.token && (!viaQr || (t.cls === q.c && t.grp === q.g))){ TOKEN = t.token; PICK = { cls: t.cls, grp: t.grp }; only('vBoard'); poll(true); }
+    else if (viaQr){ store(null); PICK = { cls: q.c, grp: q.g }; KEY = q.k || ''; toPick(''); }
+    else toPick('');
+  }).withFailureHandler(function(){ $('notice').textContent = '연결이 원활하지 않아요. 새로고침해 주세요.'; }).getConfig(); });
+
+  function toPick(msg){
+    TOKEN = null; S = null; VER = ''; store(null); stopPoll();
+    only('vPick'); drawPick(); if (msg) say('ePick', msg, 'soft'); else say('ePick', '');
+    if (PICK.cls && PICK.grp) loadInfo();
+  }
+  function drawPick(){
+    chipRow($('clsChips'), CFG.classes, PICK.cls, function(v){ PICK.cls = v; KEY = ''; drawPick(); loadInfo(); }, function(v){ return v + '반'; });
+    var gs = []; for (var i = 1; i <= CFG.groups; i++) gs.push(String(i));
+    chipRow($('grpChips'), gs, PICK.grp, function(v){ PICK.grp = v; KEY = ''; drawPick(); loadInfo(); }, function(v){ return v + '모둠'; });
+  }
+  function loadInfo(){
+    if (!PICK.cls || !PICK.grp){ show($('vMake'), false); show($('vJoin'), false); return; }
+    say('ePick', '');
+    call('groupInfo', { cls: PICK.cls, grp: PICK.grp }, function(r){
+      INFO = r;
+      if (!r.exists){ makeSeat = makeSeat || 'A'; drawMake(); only('vMake'); }
+      else { joinSeat = ''; drawJoin(); only('vJoin'); }
+    }, 'ePick');
+  }
+  function drawMake(){
+    chipRow($('sizeChips'), [3,4], makeSize, function(v){ makeSize = v; if (SEATS.indexOf(makeSeat) >= v) makeSeat = 'A'; drawMake(); }, function(v){ return v + '명'; });
+    chipRow($('mSeat'), SEATS.slice(0, makeSize), makeSeat, function(v){ makeSeat = v; drawMake(); }, function(v){ return '<b>' + v + '</b>'; });
+  }
+  function drawJoin(){
+    $('jTitle').textContent = PICK.cls + '반 ' + PICK.grp + '모둠에 들어가기 (' + INFO.size + '명)';
+    show($('jQr'), !!KEY); show($('jPwBox'), !KEY);
+    chipRow($('jSeat'), SEATS.slice(0, INFO.size), joinSeat, function(v){ joinSeat = v; drawJoin(); },
+      function(v){ return '<b>' + v + '</b>' + (INFO.taken.indexOf(v) >= 0 ? '<br><span class="t">사용 중</span>' : ''); });
+  }
+  $('bRecheck').onclick = loadInfo;
+  $('bBack').onclick = function(){ PICK.grp = ''; KEY = ''; toPick(''); };
+  $('bMake').onclick = function(){
+    say('eMake', '');
+    var pw = $('mPw').value.trim();
+    if (!pw) return say('eMake', '모둠 비밀번호를 정해 주세요. 짧은 말이면 돼요.');
+    var b = $('bMake'); busy(b, true, '만드는 중…');
+    call('createGroup', { cls: PICK.cls, grp: PICK.grp, pw: pw, size: makeSize, seat: makeSeat }, function(r){ enter(r.token); invite(true); }, 'eMake', b);
+  };
+  $('bJoin').onclick = function(){ join(false); };
+  $('jPw').addEventListener('keydown', function(e){ if (e.key === 'Enter') join(false); });
+  function join(force){
+    say('eJoin', '');
+    var pw = KEY ? '' : $('jPw').value.trim();
+    if (!KEY && !pw) return say('eJoin', '모둠 비밀번호를 적어 주세요.');
+    if (!joinSeat) return say('eJoin', '내 자리를 골라 주세요.');
+    var b = $('bJoin'); busy(b, true, '들어가는 중…');
+    google.script.run.withSuccessHandler(function(r){
+      busy(b, false);
+      if (r && r.taken){
+        if (confirm('모둠원 ' + joinSeat + ' 자리를 다른 기기에서 쓰고 있어요.\n내 자리가 맞고, 이 기기로 옮겨 쓰려면 [확인]을 눌러요.\n(친구 자리라면 [취소])')) join(true);
+        return;
+      }
+      if (r && r.badKey){ KEY = ''; drawJoin(); }
+      if (r && r.error) return say('eJoin', r.error);
+      enter(r.token, r.state);
+    }).withFailureHandler(function(){ busy(b, false); say('eJoin', '잠깐 연결이 원활하지 않았어요. 다시 눌러 주세요.'); })
+      .joinGroup({ cls: PICK.cls, grp: PICK.grp, pw: pw, key: KEY, seat: joinSeat, force: !!force });
+  }
+  function enter(token, state){
+    TOKEN = token; KEY = ''; store({ token: token, cls: PICK.cls, grp: PICK.grp });
+    $('mPw').value = ''; $('jPw').value = '';
+    only('vBoard'); if (state) apply(state); poll(true);
+  }
+  $('bOut').onclick = function(){
+    if (!confirm('나가면 이 기기에서 자리가 비워져요. 다시 들어오려면 모둠 비밀번호가 필요해요. 나갈까요?')) return;
+    var t = TOKEN; toPick(''); if (t) google.script.run.leave({ token: t });
+  };
+
+  /* 초대 QR */
+  function invite(first){
+    call('getInvite', { token: TOKEN }, function(r){
+      $('invTitle').textContent = r.cls + '반 ' + r.grp + '모둠 초대 QR';
+      $('invSub').textContent = (first ? '모둠을 만들었어요! ' : '') + '모둠원이 카메라로 찍으면 바로 우리 모둠으로 들어와요. 다 들어오면 닫아요.';
+      var box = $('qrBox'); box.innerHTML = '';
+      if (!r.url){ box.textContent = '주소를 만들지 못했어요. 모둠 비밀번호로 들어오게 해요.'; }
+      else if (window.QRCode){ new QRCode(box, { text: r.url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M }); }
+      else { box.textContent = 'QR을 그리지 못했어요. 모둠 비밀번호로 들어오게 해요.'; }
+      $('invUrl').textContent = r.url || '';
+      show($('invite'), true); $('invite').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 'eBoard', $('bInv'));
+  }
+  $('bInv').onclick = function(){ invite(false); };
+  $('bInvClose').onclick = function(){ show($('invite'), false); };
+
+  /* 4초마다 새로 고침(화면을 보고 있을 때만) */
+  function poll(now){
+    stopPoll();
+    var tick = function(){
+      if (!TOKEN) return;
+      if (document.hidden){ timer = setTimeout(tick, 4000); return; }
+      google.script.run.withSuccessHandler(function(r){
+        if (r && r.relogin){ toPick(r.error); return; }
+        if (r && r.state) apply(r.state);
+        timer = setTimeout(tick, 4000);
+      }).withFailureHandler(function(){ timer = setTimeout(tick, 6000); }).getState({ token: TOKEN, ver: VER });
+    };
+    if (now) tick(); else timer = setTimeout(tick, 4000);
+  }
+  function stopPoll(){ if (timer){ clearTimeout(timer); timer = null; } }
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden && TOKEN) poll(true); });
+
+  /* 보드 그리기 */
+  var editing = {};   // 내가 고치는 중인 카드 번호 → 새로 고침 때 입력을 지키기
+  function apply(st){
+    S = st; VER = st.ver;
+    $('who').textContent = PICK.cls + '반 ' + PICK.grp + '모둠 · 나는 모둠원 ' + st.seat + (st.lead ? ' (모둠장)' : '');
+    var myFilled = st.cards.filter(function(c){ return c.mine && c.name; }).length;
+    $('st1').className = myFilled >= 2 ? 'done' : 'now';
+    $('st2').className = st.open ? 'done' : (myFilled >= 2 ? 'now' : '');
+    $('st3').className = st.open ? 'now' : '';
+    $('mineTag').textContent = myFilled + '/2 저장'; $('mineTag').className = 'tag' + (myFilled >= 2 ? ' ok' : '');
+    drawMine(); drawBoard();
+  }
+  function cardOf(seat, n){ return S.cards.filter(function(c){ return c.seat === seat && c.n === n; })[0]; }
+  function fIdx(f){ return CFG.fields.indexOf(f); }
+
+  function drawMine(){
+    var box = $('mycards');
+    [1,2].forEach(function(n){
+      var id = 'mc' + n, el = $(id);
+      if (!el){ el = document.createElement('div'); el.id = id; el.className = 'mine'; box.appendChild(el); }
+      if (editing[n]) return;                       // 쓰는 중이면 그대로 둬요
+      var c = cardOf(S.seat, n);
+      if (c && c.name){
+        el.innerHTML = '<h3>카드 ' + n + '</h3><div class="sticky f' + fIdx(c.field) + '" style="min-height:0">' + stickyInner(c) + '</div>' +
+          (S.open ? '' : '<button class="ghost small" type="button">고치기</button>');
+        var b = el.querySelector('button'); if (b) b.onclick = function(){ edit(n); };
+      } else if (S.open){
+        el.innerHTML = '<h3>카드 ' + n + '</h3><div class="hint">결과가 공개돼서 더 쓸 수 없어요.</div>';
+      } else edit(n);
+    });
+  }
+  function edit(n){
+    editing[n] = { field: '', way: '' };
+    var c = cardOf(S.seat, n) || {}, el = $('mc' + n);
+    editing[n].field = c.field || ''; editing[n].way = c.way || '';
+    el.innerHTML = '<h3>카드 ' + n + '</h3>' +
+      '<div class="hint" style="margin:0">꼭 쓸 것: 사례명 · 분야 · 핵심 사실</div><label>사례명</label><input type="text" maxlength="40" class="i-name" placeholder="예: 다누리">' +
+      '<label>분야</label><div class="chips i-field"></div>' +
+      '<label>핵심 사실 1개 (친구들이 이걸 보고 투표해요)</label><textarea maxlength="120" class="i-fact" placeholder="내 문서의 사실 중 가장 중요한 한 줄"></textarea>' +
+      '<div class="opt"><div class="optT">발전 방향 · 아이디어 <span class="tag">선택 · 비워도 저장돼요</span></div>' +
+      '<label>발전 방향</label><div class="chips i-way"></div>' +
+      '<label>발전 아이디어 한 줄</label><input type="text" maxlength="120" class="i-idea" placeholder="떠오르면 한 줄, 없으면 비워 둬요"></div>' +
+      '<div class="msg err hidden i-err"></div><div style="height:8px"></div>' +
+      '<button class="primary wide i-save" type="button">카드 ' + n + ' 저장</button>' +
+      (c.name ? '<div style="height:6px"></div><button class="ghost small i-cancel" type="button">그만두기</button>' : '');
+    el.querySelector('.i-name').value = c.name || ''; el.querySelector('.i-fact').value = c.fact || ''; el.querySelector('.i-idea').value = c.idea || '';
+    var drawSel = function(){
+      var fb = el.querySelector('.i-field'); fb.innerHTML = '';
+      CFG.fields.forEach(function(f, i){ var s = document.createElement('span'); s.className = 'chip fchip f' + i + (editing[n].field === f ? ' on' : ''); s.textContent = f; s.onclick = function(){ editing[n].field = f; drawSel(); }; fb.appendChild(s); });
+      var wb = el.querySelector('.i-way'); wb.innerHTML = '';
+      CFG.ways.forEach(function(w){ var s = document.createElement('span'); s.className = 'chip' + (editing[n].way === w ? ' on' : ''); s.textContent = w; s.onclick = function(){ editing[n].way = (editing[n].way === w ? '' : w); drawSel(); }; wb.appendChild(s); });
+    };
+    drawSel();
+    var cancel = el.querySelector('.i-cancel'); if (cancel) cancel.onclick = function(){ delete editing[n]; drawMine(); };
+    el.querySelector('.i-save').onclick = function(){
+      var e = el.querySelector('.i-err'); e.classList.add('hidden');
+      var card = { name: el.querySelector('.i-name').value.trim(), field: editing[n].field, fact: el.querySelector('.i-fact').value.trim(),
+        way: editing[n].way, idea: el.querySelector('.i-idea').value.trim() };
+      if (!card.name){ e.textContent = '사례명을 적어 주세요.'; e.classList.remove('hidden'); return; }
+      if (!card.field){ e.textContent = '분야를 골라 주세요.'; e.classList.remove('hidden'); return; }
+      if (!card.fact){ e.textContent = '핵심 사실을 한 줄 적어 주세요. 친구들이 이걸 보고 투표해요.'; e.classList.remove('hidden'); return; }
+      var b = el.querySelector('.i-save'); busy(b, true, '저장하는 중…');
+      google.script.run.withSuccessHandler(function(r){
+        busy(b, false);
+        if (r && r.relogin){ toPick(r.error); return; }
+        if (r && r.error){ e.textContent = r.error; e.classList.remove('hidden'); return; }
+        delete editing[n]; apply(r.state);
+      }).withFailureHandler(function(){ busy(b, false); e.textContent = '잠깐 연결이 원활하지 않았어요. 다시 눌러 주세요.'; e.classList.remove('hidden'); })
+        .saveCard({ token: TOKEN, n: n, card: card });
+    };
+  }
+  function stickyInner(c){
+    return '<div class="fd">' + esc(c.field) + '</div><div class="nm">' + esc(c.name) + '</div>' +
+      (c.fact ? '<div class="fc">' + esc(c.fact) + '</div>' : '') +
+      (c.idea || c.way ? '<div class="id">💡 ' + (c.way ? '<b>' + esc(c.way) + '</b> ' : '') + esc(c.idea) + '</div>' : '');
+  }
+
+  function drawBoard(){
+    var st = S, box = $('board'); box.innerHTML = '';
+    var stars = ''; for (var i = 0; i < st.perSeat; i++) stars += i < st.left ? '★' : '<span class="e">★</span>';
+    $('myStars').innerHTML = stars;
+    $('voteLine').textContent = st.open
+      ? '결과가 공개됐어요' + (st.how && st.how !== '모두 투표' ? ' (' + st.how + ')' : '') + '. 이제 표를 바꿀 수 없어요.'
+      : '내 표 ' + st.left + '개 남음 · 투표를 다 한 모둠원 ' + st.progress.done + '/' + st.progress.need + '명' +
+        (st.votedSeats.length ? ' (' + st.votedSeats.join(', ') + ')' : '') + ' · 모두 투표하면 ★ 수가 보여요.';
+    if (st.open){
+      var tops = st.cards.filter(function(c){ return st.top.indexOf(c.id) >= 0; });
+      $('result').innerHTML = tops.length
+        ? '<b>후보 ' + tops.length + '개</b> · ' + tops.map(function(c){ return esc(c.name) + ' (★' + c.votes + ')'; }).join(', ') +
+          '<br>캔바 토론 보드 ③에서 기준 3가지로 점검하고 결정해요.' + (tops.length > 2 ? ' 표가 같아서 후보가 ' + tops.length + '개예요.' : '')
+        : '표가 하나도 없어요. 모둠이 이야기해서 후보 2개를 정해요.';
+      show($('result'), true);
+    } else show($('result'), false);
+    SEATS.slice(0, st.size).forEach(function(seat){
+      var col = document.createElement('div'); col.className = 'col';
+      col.innerHTML = '<h3 class="' + (seat === st.seat ? 'me' : '') + '">모둠원 ' + seat + (seat === st.seat ? ' (나)' : '') + '</h3>';
+      [1,2].forEach(function(n){
+        var c = cardOf(seat, n), d = document.createElement('div');
+        if (!c || !c.name){ d.className = 'sticky empty'; d.textContent = '아직 쓰는 중'; col.appendChild(d); return; }
+        d.className = 'sticky f' + fIdx(c.field) + (st.open && st.top.indexOf(c.id) >= 0 ? ' win' : '');
+        d.innerHTML = (st.open ? '<span class="count">★ ' + c.votes + '</span>' : '') + stickyInner(c);
+        if (!st.open){
+          var b = document.createElement('button'); b.type = 'button';
+          if (c.mine){ b.className = 'vbtn'; b.disabled = true; b.textContent = '내 카드'; }
+          else {
+            b.className = 'vbtn' + (c.voted ? ' on' : ''); b.textContent = c.voted ? '★ 준 카드 (누르면 취소)' : '☆ 이 카드에 ★ 주기';
+            b.disabled = !c.voted && st.left <= 0;
+            b.onclick = function(){ say('eBoard', ''); busy(b, true, ''); call('vote', { token: TOKEN, card: c.id, on: !c.voted }, null, 'eBoard', b); };
+          }
+          d.appendChild(b);
+        } else if (c.voted){ d.insertAdjacentHTML('beforeend', '<div class="hint" style="margin-top:6px">내가 ★를 준 카드</div>'); }
+        col.appendChild(d);
+      });
+      box.appendChild(col);
+    });
+    show($('leadBox'), st.lead && !st.open);
+    $('bSize').textContent = '모둠 인원 ' + (st.size === 4 ? '3명으로 바꾸기' : '4명으로 바꾸기');
+  }
+  $('bOpen').onclick = function(){
+    if (!confirm('아직 투표하지 않은 모둠원이 있어도 지금 결과를 공개할까요? 공개하면 표를 바꿀 수 없어요.')) return;
+    call('openNow', { token: TOKEN }, null, 'eBoard', $('bOpen'));
+  };
+  $('bSize').onclick = function(){
+    var to = S.size === 4 ? 3 : 4;
+    if (!confirm('모둠 인원을 ' + to + '명으로 바꿀까요?' + (to === 3 ? ' 모둠원 D 자리는 사라져요.' : ''))) return;
+    call('setSize', { token: TOKEN, size: to }, null, 'eBoard', $('bSize'));
+  };
+})();
+</script>
+</body>
+</html>

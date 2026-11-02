@@ -8,5 +8,8 @@ window.GUIDE_LINKS = {
   //   이 페이지에 링크를 두지 않고, 캔바 문서 안의 링크로 안내합니다.
 
   // 1차시 캔바 과제(개인 조사 요약) 링크 (선택, 정해지면 입력)
-  canvaAssignment: ''
+  canvaAssignment: '',
+
+  // 2차시 모둠 토론 보드(카드·투표). 같은 사이트 안의 board 폴더
+  board: 'board/'
 };
