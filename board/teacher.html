@@ -31,7 +31,7 @@
   .sum{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
   .sum span{font-size:13px;padding:4px 12px;border-radius:999px;background:#eef1f6;color:var(--sub)}
   .sum b{color:var(--ink)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px;align-items:start}
   .grp{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
   .grp.none{background:#f7f8fb;border-style:dashed;color:#9aa3b2}
   .grp.done{border-color:#b9dcc6}
@@ -186,7 +186,7 @@
         return '<div class="seat ' + cls + '"><b>' + s + (g.lead === s ? '·장' : '') + '</b>' + sub + '</div>';
       }).join('');
       var cards = g.cards.slice().sort(function(a, b){ return a.seat < b.seat ? -1 : a.seat > b.seat ? 1 : a.n - b.n; }).map(function(c){
-        var f = FIELDS.indexOf(c.field), win = g.top.indexOf(c.id) >= 0;
+        var f = FIELDS.indexOf(c.field), win = g.open && g.top.indexOf(c.id) >= 0;   // 후보 강조는 공개 뒤에만
         return '<div class="c ' + (f >= 0 ? 'f' + f : 'fx') + (win ? ' win' : '') + '">' +
           '<div class="h"><span class="s">' + esc(c.seat) + '</span><span class="nm">' + esc(c.name) + '</span></div>' +
           '<div class="fd">' + esc(c.field) + (c.way ? ' · ' + esc(c.way) : '') + '</div>' +
