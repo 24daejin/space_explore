@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>토론 보드 · 선생님 보기</title>
+<style>
+  :root{--bg:#f4f7fb;--card:#fff;--ink:#26364a;--sub:#6b7a8f;--line:#dde5ef;--main:#4f7cc4;--main-d:#3d65a6;--soft:#eaf1fb;
+    --warm:#fff6e5;--warm-ink:#8a5a00;--ok:#e8f6ee;--ok-ink:#1f6b3f;--warn:#fdecec;--warn-ink:#a33a3a;--star:#e08a00}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.5;-webkit-text-size-adjust:100%;word-break:keep-all}
+  .wrap{max-width:1500px;margin:0 auto;padding:16px 16px 48px}
+  h1{font-size:20px;margin:4px 0 10px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 12px}
+  label{display:block;font-size:13px;color:var(--sub);margin:0 0 5px}
+  input[type=password]{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+  input:focus{outline:2px solid #b9cdee;border-color:var(--main)}
+  button{font:inherit;font-size:15px;border:0;border-radius:12px;padding:10px 16px;cursor:pointer}
+  .primary{background:var(--main);color:#fff;font-weight:600}.primary:disabled{background:#b7c4d8}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .small{font-size:13px;padding:6px 12px;border-radius:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 16px;font-size:15px;cursor:pointer;user-select:none}
+  .chip.on{background:var(--main);border-color:var(--main);color:#fff;font-weight:700}
+  .msg{border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0 0}
+  .err{background:var(--warn);color:var(--warn-ink)}
+  .hidden{display:none!important}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .bar .right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--sub)}
+  .sum{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .sum span{font-size:13px;padding:4px 12px;border-radius:999px;background:#eef1f6;color:var(--sub)}
+  .sum b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+  .grp{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+  .grp.none{background:#f7f8fb;border-style:dashed;color:#9aa3b2}
+  .grp.done{border-color:#b9dcc6}
+  .gh{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .gh h2{margin:0;font-size:18px}
+  .tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--soft);color:#33507c;font-weight:600}
+  .tag.ok{background:var(--ok);color:var(--ok-ink)}.tag.warm{background:var(--warm);color:var(--warm-ink)}.tag.gray{background:#eef1f6;color:var(--sub)}
+  .seats{display:flex;gap:6px}
+  .seat{flex:1;text-align:center;border-radius:10px;padding:4px 2px;font-size:12px;background:#f1f3f7;color:#9aa3b2;border:1px dashed #cfd5df}
+  .seat b{display:block;font-size:14px}
+  .seat.in{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .seat.vt{background:var(--ok);color:var(--ok-ink);border:1px solid #b9dcc6}
+  .cards{display:flex;flex-direction:column;gap:7px}
+  .c{border-radius:10px;padding:8px 10px;font-size:13.5px;position:relative;box-shadow:0 1px 3px rgba(20,26,46,.08)}
+  .c .h{display:flex;align-items:baseline;gap:6px;padding-right:44px}
+  .c .s{font-weight:800;font-size:12px;background:#141a2e;color:#fff;border-radius:6px;padding:0 6px;flex:none}
+  .c .nm{font-weight:800;font-size:15px;line-height:1.3}
+  .c .fd{font-size:11.5px;color:#5b5140;font-weight:700}
+  .c .fc{margin-top:3px}
+  .c .id{font-size:12px;color:#4a4033;margin-top:3px}
+  .c .v{position:absolute;right:8px;top:6px;font-weight:800;color:var(--star);font-size:15px}
+  .c.win{outline:3px solid var(--star)}
+  .f0{background:#FFF1B8}.f1{background:#FFD9C7}.f2{background:#D9EEFF}.f3{background:#DDF3D6}.f4{background:#EEE3FF}.fx{background:#f1f3f7}
+  body.hidevotes .c .v,body.hidevotes .c.win{outline:none}
+  body.hidevotes .c .v{display:none}
+  .empty{font-size:13px;color:#9aa3b2;text-align:center;padding:8px 0}
+  .gf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--sub);margin-top:auto}
+  .toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .foot{font-size:12px;color:var(--sub);text-align:center;margin-top:18px}
+  @media (max-width:420px){ .grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">토론 보드 · 선생님 보기</h1>
+
+  <!-- 비밀번호 -->
+  <div id="vLogin" class="panel" style="max-width:420px">
+    <label for="pw">선생님 비밀번호 ([보드설정] 시트의 "선생님 비밀번호")</label>
+    <div style="display:flex;gap:8px"><input id="pw" type="password" autocomplete="current-password">
+      <button id="bLogin" class="primary" type="button" style="flex:none">보기</button></div>
+    <div id="eLogin" class="msg err hidden"></div>
+  </div>
+
+  <!-- 보기 -->
+  <div id="vMain" class="hidden">
+    <div class="panel">
+      <div class="bar">
+        <div class="chips" id="clsChips"></div>
+        <div class="right">
+          <label class="toggle" style="margin:0;color:var(--sub)"><input type="checkbox" id="hide"> 화면에 띄울 때 득표 가리기</label>
+          <span id="stamp"></span>
+          <button id="bOut" class="ghost small" type="button">나가기</button>
+        </div>
+      </div>
+      <div class="sum" id="sum"></div>
+      <div id="eMain" class="msg err hidden"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="foot">자리를 차지하지 않고 보기만 해요. 학생 화면에는 영향이 없어요. 5초마다 새로 고쳐요.</div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  var API = String(window.BOARD_API || '').trim();
+  var FIELDS = ['탐사선(로봇)', '로켓·인공위성', '우주망원경', '정거장', '우리나라 우주탐사'];
+  var SEATS = ['A','B','C','D'];
+  var $ = function(id){ return document.getElementById(id); };
+  var PW = '', CLS = '', VER = '', CLASSES = [], timer = null, busyPoll = false;
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function show(el, on){ el.classList.toggle('hidden', !on); }
+  function say(id, t){ var e = $(id); e.textContent = t || ''; show(e, !!t); }
+  function ss(k, v){ try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch(e){ return null; } }
+  function post(fn, arg){
+    if (!API) return Promise.reject(new Error('NO_API'));
+    return fetch(API, { method: 'POST', redirect: 'follow', credentials: 'omit',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, arg: arg }) })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function serverOld(r){ return r && r.error === '알 수 없는 요청이에요.'; }
+  var OLD = '앱스크립트가 아직 예전 버전이에요. 새 Code.gs를 붙여 넣고 [배포 관리 → 새 버전]으로 배포해 주세요.';
+
+  try { if (ss('t_hide') === '1'){ $('hide').checked = true; document.body.classList.add('hidevotes'); } } catch(e){}
+  $('hide').onchange = function(){ document.body.classList.toggle('hidevotes', this.checked); ss('t_hide', this.checked ? '1' : '0'); };
+
+  function login(){
+    var pw = $('pw').value.trim(); if (!pw) return say('eLogin', '비밀번호를 적어 주세요.');
+    var b = $('bLogin'); b.disabled = true; b.innerHTML = '<span class="spin"></span>확인';
+    post('teacherBoard', { pw: pw, cls: ss('t_cls') || '' }).then(function(r){
+      b.disabled = false; b.textContent = '보기';
+      if (serverOld(r)) return say('eLogin', OLD);
+      if (r.error) return say('eLogin', r.error);
+      PW = pw; ss('t_pw', pw); say('eLogin', ''); start(r);
+    }, function(){ b.disabled = false; b.textContent = '보기'; say('eLogin', '연결이 원활하지 않아요. 다시 눌러 주세요.'); });
+  }
+  $('bLogin').onclick = login;
+  $('pw').addEventListener('keydown', function(e){ if (e.key === 'Enter') login(); });
+  $('bOut').onclick = function(){ stop(); PW = ''; ss('t_pw', null); show($('vMain'), false); show($('vLogin'), true); $('pw').value = ''; };
+
+  function start(r){
+    show($('vLogin'), false); show($('vMain'), true);
+    CLASSES = r.classes || []; if (r.title) $('title').textContent = r.title + ' · 선생님 보기';
+    CLS = r.cls || ''; drawCls();
+    if (CLS) draw(r); else { $('grid').innerHTML = '<div class="empty">위에서 반을 골라 주세요.</div>'; $('sum').innerHTML = ''; }
+    poll();
+  }
+  function drawCls(){
+    var box = $('clsChips'); box.innerHTML = '';
+    CLASSES.forEach(function(c){
+      var e = document.createElement('span'); e.className = 'chip' + (c === CLS ? ' on' : ''); e.textContent = c + '반';
+      e.onclick = function(){ if (c === CLS) return; CLS = c; ss('t_cls', c); VER = ''; drawCls(); $('grid').innerHTML = '<div class="empty">불러오는 중…</div>'; $('sum').innerHTML = ''; refresh(); };
+      box.appendChild(e);
+    });
+  }
+
+  function refresh(){
+    if (!PW || !CLS || busyPoll) return Promise.resolve();
+    busyPoll = true; var want = CLS;
+    return post('teacherBoard', { pw: PW, cls: CLS, ver: VER }).then(function(r){
+      busyPoll = false; if (want !== CLS) return;
+      if (serverOld(r)) return say('eMain', OLD);
+      if (r.auth){ $('bOut').onclick(); say('eLogin', r.error); return; }
+      if (r.error) return say('eMain', r.error);
+      say('eMain', ''); stampNow();
+      if (r.same) return;
+      draw(r);
+    }, function(){ busyPoll = false; say('eMain', '연결이 잠깐 끊겼어요. 곧 다시 시도해요.'); });
+  }
+  function poll(){ stop(); var tick = function(){ (document.hidden ? Promise.resolve() : refresh()).then(function(){ timer = setTimeout(tick, 5000); }); }; timer = setTimeout(tick, 5000); }
+  function stop(){ if (timer){ clearTimeout(timer); timer = null; } }
+  function stampNow(){ var d = new Date(); $('stamp').textContent = '새로 고침 ' + [d.getHours(), d.getMinutes(), d.getSeconds()].map(function(n){ return ('0' + n).slice(-2); }).join(':'); }
+
+  function draw(r){
+    VER = r.ver || ''; stampNow();
+    var per = r.votes || 2, made = 0, opened = 0, cardsN = 0, cardsNeed = 0, html = '';
+    (r.groups || []).forEach(function(g){
+      if (!g.exists){
+        html += '<div class="grp none"><div class="gh"><h2>' + g.grp + '모둠</h2><span class="tag gray">아직 안 만듦</span></div></div>';
+        return;
+      }
+      made++; if (g.open) opened++; cardsN += g.cards.length; cardsNeed += g.size * 2;
+      var st = g.open ? '<span class="tag ok">결과 공개' + (g.how ? ' · ' + esc(g.how) : '') + '</span>'
+        : '<span class="tag warm">투표 ' + g.done + '/' + g.need + '명</span>';
+      var seats = SEATS.slice(0, g.size).map(function(s){
+        var inn = g.taken.indexOf(s) >= 0, used = (g.used && g.used[s]) || 0, cls = used >= per ? 'vt' : (inn ? 'in' : '');
+        var sub = used >= per ? '투표 완료' : (used ? '★ ' + used + '/' + per : (inn ? '들어옴' : '비어 있음'));
+        return '<div class="seat ' + cls + '"><b>' + s + (g.lead === s ? '·장' : '') + '</b>' + sub + '</div>';
+      }).join('');
+      var cards = g.cards.slice().sort(function(a, b){ return a.seat < b.seat ? -1 : a.seat > b.seat ? 1 : a.n - b.n; }).map(function(c){
+        var f = FIELDS.indexOf(c.field), win = g.top.indexOf(c.id) >= 0;
+        return '<div class="c ' + (f >= 0 ? 'f' + f : 'fx') + (win ? ' win' : '') + '">' +
+          '<div class="h"><span class="s">' + esc(c.seat) + '</span><span class="nm">' + esc(c.name) + '</span></div>' +
+          '<div class="fd">' + esc(c.field) + (c.way ? ' · ' + esc(c.way) : '') + '</div>' +
+          '<div class="fc">' + esc(c.fact) + '</div>' +
+          (c.idea ? '<div class="id">💡 ' + esc(c.idea) + '</div>' : '') +
+          '<span class="v">★' + c.votes + '</span></div>';
+      }).join('');
+      html += '<div class="grp' + (g.open ? ' done' : '') + '"><div class="gh"><h2>' + g.grp + '모둠 <span style="font-size:13px;color:var(--sub);font-weight:600">' + g.size + '명</span></h2>' + st + '</div>' +
+        '<div class="seats">' + seats + '</div>' +
+        '<div class="cards">' + (cards || '<div class="empty">아직 카드가 없어요</div>') + '</div>' +
+        '<div class="gf"><span>카드 ' + g.cards.length + '/' + g.size * 2 + '</span>' +
+        (g.open ? '' : '<button class="ghost small" data-open="' + g.grp + '" type="button">지금 결과 공개</button>') + '</div></div>';
+    });
+    $('grid').innerHTML = html;
+    $('sum').innerHTML = '<span>' + esc(r.cls) + '반</span><span>모둠 <b>' + made + '</b>/' + (r.groups || []).length + ' 만듦</span>' +
+      '<span>카드 <b>' + cardsN + '</b>/' + cardsNeed + '</span><span>결과 공개 <b>' + opened + '</b>/' + made + '</span>';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-open]'), function(b){
+      b.onclick = function(){
+        var grp = b.getAttribute('data-open');
+        if (!confirm(CLS + '반 ' + grp + '모둠 결과를 지금 공개할까요?\n공개하면 학생들은 카드와 표를 더 바꿀 수 없어요.')) return;
+        b.disabled = true; b.innerHTML = '공개 중…';
+        post('teacherOpen', { pw: PW, cls: CLS, grp: grp }).then(function(r){
+          if (r.error){ b.disabled = false; b.textContent = '지금 결과 공개'; return say('eMain', r.error); }
+          VER = ''; refresh();
+        }, function(){ b.disabled = false; b.textContent = '지금 결과 공개'; say('eMain', '연결이 원활하지 않아요. 다시 눌러 주세요.'); });
+      };
+    });
+  }
+
+  // 같은 탭에서 새로 고침하면 다시 묻지 않아요(탭을 닫으면 지워져요)
+  if (!API) say('eLogin', 'board/config.js 에 앱스크립트 주소(BOARD_API)가 없어요.');
+  else if (ss('t_pw')){ $('pw').value = ss('t_pw'); login(); }
+})();
+</script>
+</body>
+</html>
