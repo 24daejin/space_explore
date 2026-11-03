@@ -69,10 +69,6 @@
   .foot{font-size:12px;color:var(--sub);text-align:center;margin-top:18px}
   .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:6px}
   @keyframes s{to{transform:rotate(360deg)}}
-  .invite{text-align:center}
-  .invite #qrBox{display:inline-block;background:#fff;padding:12px;border-radius:12px;border:1px solid var(--line);margin:8px 0}
-  .invite #qrBox img,.invite #qrBox canvas{display:block}
-  .invite .url{font-size:11px;color:var(--sub);word-break:break-all}
   @media (max-width:720px){ .mycards{grid-template-columns:1fr} .board{grid-template-columns:1fr 1fr} }
   @media (max-width:420px){ .board{grid-template-columns:1fr} }
 </style>
@@ -97,7 +93,7 @@
     <label>모둠 인원</label><div class="seats" id="sizeChips"></div>
     <label for="mPw">모둠 비밀번호 만들기</label>
     <input id="mPw" type="text" autocomplete="off" maxlength="12" placeholder="짧은 말이면 돼요 (예: 별4)">
-    <div class="hint">만들면 초대 QR이 나와요. 모둠원은 QR을 찍으면 비밀번호 없이 들어와요. QR이 안 될 때만 비밀번호를 써요.</div>
+    <div class="hint">모둠원은 토론 보드 링크로 들어와 같은 반·모둠을 고르고 이 비밀번호를 적어요. 만든 뒤 모둠원에게 알려 주세요.</div>
     <label>내 자리 (모둠원 A~D)</label><div class="seats" id="mSeat"></div>
     <div id="eMake" class="msg err hidden"></div>
     <div style="height:10px"></div>
@@ -107,7 +103,7 @@
   <!-- 2-2. 들어가기(모둠원) -->
   <div id="vJoin" class="panel hidden">
     <h2 id="jTitle">모둠에 들어가기</h2>
-    <div id="jQr" class="msg okm hidden">QR로 들어왔어요. 내 자리만 고르면 돼요.</div>
+    <div id="jQr" class="msg okm hidden">초대 주소로 들어왔어요. 내 자리만 고르면 돼요.</div>
     <div id="jPwBox"><label for="jPw">모둠 비밀번호</label>
     <input id="jPw" type="text" autocomplete="off" maxlength="12" placeholder="모둠장에게 받은 비밀번호"></div>
     <label>내 자리 (모둠원 A~D)</label><div class="seats" id="jSeat"></div>
@@ -125,15 +121,7 @@
       <div class="top">
         <div><div class="who" id="who"></div>
           <div class="steps"><span id="st1">① 카드 쓰기</span><span id="st2">② 투표</span><span id="st3">③ 결과</span></div></div>
-        <div style="display:flex;gap:6px"><button id="bInv" class="ghost small" type="button">초대 QR</button>
-        <button id="bOut" class="ghost small" type="button">나가기</button></div>
-      </div>
-      <div id="invite" class="msg soft invite hidden">
-        <b id="invTitle">모둠원 초대 QR</b><br>
-        <span id="invSub">모둠원이 휴대폰·태블릿 카메라로 찍으면 바로 우리 모둠으로 들어와요.</span><br>
-        <div id="qrBox"></div>
-        <div class="url" id="invUrl"></div>
-        <button id="bInvClose" class="ghost small" type="button" style="margin-top:8px">QR 닫기</button>
+        <div style="display:flex;gap:6px"><button id="bOut" class="ghost small" type="button">나가기</button></div>
       </div>
       <div id="eBoard" class="msg err hidden"></div>
     </div>
@@ -189,7 +177,6 @@
   });
 })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (function(){
   var APP_VER = '2026-11-03';
@@ -225,7 +212,7 @@
   }
 
   /* 시작 */
-  /* QR로 열었을 때 주소 뒤의 ?c=반&g=모둠&k=입장코드 읽기 (템플릿 없이 브라우저에서 읽어요) */
+  /* 예전 초대 주소로 열었을 때 주소 뒤의 ?c=반&g=모둠&k=입장코드 읽기 (템플릿 없이 브라우저에서 읽어요) */
   var BOOT = {};
   function readQuery(done){
     var fin = function(p){
@@ -284,7 +271,7 @@
     var pw = $('mPw').value.trim();
     if (!pw) return say('eMake', '모둠 비밀번호를 정해 주세요. 짧은 말이면 돼요.');
     var b = $('bMake'); busy(b, true, '만드는 중…');
-    call('createGroup', { cls: PICK.cls, grp: PICK.grp, pw: pw, size: makeSize, seat: makeSeat }, function(r){ enter(r.token); invite(true); }, 'eMake', b);
+    call('createGroup', { cls: PICK.cls, grp: PICK.grp, pw: pw, size: makeSize, seat: makeSeat }, function(r){ enter(r.token); say('eBoard', '모둠을 만들었어요! 모둠원에게 비밀번호 「' + pw + '」를 알려 주세요. 모둠원은 토론 보드 링크로 들어와 ' + PICK.cls + '반 ' + PICK.grp + '모둠을 고르면 돼요.', 'okm'); }, 'eMake', b);
   };
   $('bJoin').onclick = function(){ join(false); };
   $('jPw').addEventListener('keydown', function(e){ if (e.key === 'Enter') join(false); });
@@ -315,22 +302,6 @@
     if (!confirm('나가면 이 기기에서 자리가 비워져요. 다시 들어오려면 모둠 비밀번호가 필요해요. 나갈까요?')) return;
     var t = TOKEN; toPick(''); if (t) google.script.run.leave({ token: t });
   };
-
-  /* 초대 QR */
-  function invite(first){
-    call('getInvite', { token: TOKEN }, function(r){
-      $('invTitle').textContent = r.cls + '반 ' + r.grp + '모둠 초대 QR';
-      $('invSub').textContent = (first ? '모둠을 만들었어요! ' : '') + '모둠원이 카메라로 찍으면 바로 우리 모둠으로 들어와요. 다 들어오면 닫아요.';
-      var box = $('qrBox'); box.innerHTML = '';
-      if (!r.url){ box.textContent = '주소를 만들지 못했어요. 모둠 비밀번호로 들어오게 해요.'; }
-      else if (window.QRCode){ new QRCode(box, { text: r.url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M }); }
-      else { box.textContent = 'QR을 그리지 못했어요. 모둠 비밀번호로 들어오게 해요.'; }
-      $('invUrl').textContent = r.url || '';
-      show($('invite'), true); $('invite').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 'eBoard', $('bInv'));
-  }
-  $('bInv').onclick = function(){ invite(false); };
-  $('bInvClose').onclick = function(){ show($('invite'), false); };
 
   /* 4초마다 새로 고침(화면을 보고 있을 때만) */
   function poll(now){
