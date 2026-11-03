@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 활용기록카드</title>
+<style>
+  :root{--bg:#f4f7fb;--card:#fff;--ink:#26364a;--sub:#6b7a8f;--line:#dde5ef;--main:#4f7cc4;--main-d:#3d65a6;--soft:#eaf1fb;
+    --warm:#fff6e5;--warm-ink:#8a5a00;--ok:#e8f6ee;--ok-ink:#1f6b3f;--warn:#fdecec;--warn-ink:#a33a3a}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:640px;margin:0 auto;padding:16px 16px 56px}
+  h1{font-size:20px;margin:6px 0}
+  .hello{background:var(--soft);border-radius:14px;padding:12px 14px;font-size:14px;color:#33507c;margin:8px 0 14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 12px}
+  .card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  label{display:block;font-size:13px;color:var(--sub);margin:12px 0 5px}
+  input[type=text],input[type=password],textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus{outline:2px solid #b9cdee;border-color:var(--main)}
+  textarea{min-height:90px;resize:vertical}
+  .hint{font-size:12.5px;color:var(--sub);margin-top:5px}
+  button{font:inherit;font-size:16px;border:0;border-radius:12px;padding:12px 16px;cursor:pointer}
+  .primary{background:var(--main);color:#fff;width:100%;font-weight:600}
+  .primary:hover{background:var(--main-d)} .primary:disabled{background:#b7c4d8}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .small{font-size:13px;padding:7px 12px;border-radius:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer;user-select:none}
+  .chip.on{background:var(--main);border-color:var(--main);color:#fff}
+  .seg{display:flex;gap:8px}.seg .chip{flex:1;text-align:center;border-radius:12px}
+  .msg{border-radius:12px;padding:10px 12px;font-size:14px;margin:10px 0}
+  .err{background:var(--warn);color:var(--warn-ink)} .soft{background:var(--warm);color:var(--warm-ink)} .okm{background:var(--ok);color:var(--ok-ink)}
+  .hidden{display:none!important}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .who{font-weight:700}
+  .tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--soft);color:#33507c}
+  .tag.ok{background:var(--ok);color:var(--ok-ink)} .tag.warm{background:var(--warm);color:var(--warm-ink)}
+  .rec{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+  .rec .h{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--sub)}
+  .rec .q{white-space:pre-wrap;font-size:14px;margin:6px 0;background:#f7f9fc;border-radius:8px;padding:8px 10px}
+  .rec .m{font-size:13.5px}
+  .rec .btns{display:flex;gap:8px;margin-top:8px}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  details summary{cursor:pointer;font-size:14px;color:var(--sub)}
+  .foot{font-size:12px;color:var(--sub);text-align:center;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="title">AI 활용기록카드</h1>
+  <div class="hello" id="notice">불러오는 중이에요…</div>
+
+  <!-- 로그인 -->
+  <div id="vLogin" class="card">
+    <h2>들어가기</h2>
+    <label for="sid">학번 (예: 20107)</label>
+    <input id="sid" type="text" inputmode="numeric" autocomplete="username" placeholder="학번 5자리">
+    <label for="pw">비밀번호</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="비밀번호">
+    <div id="eLogin" class="msg err hidden"></div>
+    <div style="height:12px"></div>
+    <button id="bLogin" class="primary" type="button">들어가기</button>
+    <div class="hint">처음에는 선생님이 나눠 준 쪽지의 비밀번호로 들어와요. 잊었다면 선생님께 말씀해 주세요.</div>
+  </div>
+
+  <!-- 로그인 뒤 -->
+  <div id="vMain" class="hidden">
+    <div class="card">
+      <div class="top"><div><div class="who" id="who"></div><div class="hint" id="stLine"></div></div>
+        <button id="bOut" class="ghost small" type="button">나가기</button></div>
+      <div class="hint">친구와 같이 쓰는 기기라면 다 쓴 뒤 꼭 ‘나가기’를 눌러요.</div>
+      <div id="fromHint" class="msg soft hidden"></div>
+      <div id="lockMsg" class="msg soft hidden">기록 마감 시간이 지나서 지금은 보기만 할 수 있어요.</div>
+    </div>
+
+    <div class="card hidden" id="cFirst">
+      <h2>처음이네요! 비밀번호를 내 것으로 바꿔요</h2>
+      <div class="hint" style="margin:0">쪽지 비밀번호는 다른 사람도 볼 수 있어서, 바꾼 뒤에 기록할 수 있어요. 4~20자, 나만 아는 것으로 정해요.</div>
+      <label for="fOld">쪽지에 있는 비밀번호</label><input id="fOld" type="password" autocomplete="current-password">
+      <label for="fNew">새 비밀번호</label><input id="fNew" type="password" autocomplete="new-password">
+      <label for="fNew2">새 비밀번호 한 번 더</label><input id="fNew2" type="password" autocomplete="new-password">
+      <div id="eFirst" class="msg hidden"></div>
+      <div style="height:12px"></div>
+      <button id="bFirst" class="primary" type="button">바꾸고 시작하기</button>
+    </div>
+
+    <div class="card" id="cForm">
+      <h2 id="fTitle">새 기록 쓰기</h2>
+      <label>몇 차시에 썼나요?</label>
+      <div class="seg" id="kSeg"></div>
+      <label>사용한 AI</label>
+      <div class="chips" id="aiChips"></div>
+      <input id="aiOther" type="text" class="hidden" placeholder="AI 이름을 적어 주세요" style="margin-top:8px">
+      <label for="q">AI에 입력한 질문</label>
+      <textarea id="q" maxlength="1000" placeholder="질문을 그대로 붙여 넣어도 되고, 요지만 한 줄로 적어도 돼요"></textarea>
+      <label>결과를 어떻게 반영했나요?</label>
+      <div class="chips" id="howChips"></div>
+      <label>반영한 부분 (여러 개 골라도 돼요)</label>
+      <div class="chips" id="partChips"></div>
+      <label for="src">대조 확인한 공식 출처</label>
+      <input id="src" type="text" maxlength="300" placeholder="예: NASA 홈페이지 — https://…">
+      <div class="hint">기관·사이트 이름과 주소를 함께 적어요. 아직 확인 못 했다면 비워 두고, 확인한 뒤 ‘고치기’로 채워도 돼요. 이미지만 만들었다면 비워 둬도 돼요.</div>
+      <div id="eForm" class="msg err hidden"></div>
+      <div style="height:12px"></div>
+      <button id="bSave" class="primary" type="button">기록 저장</button>
+      <div style="height:8px"></div>
+      <button id="bCancel" class="ghost small hidden" type="button">고치기 그만두기</button>
+    </div>
+
+    <div class="card">
+      <h2>내 기록 <span class="tag" id="cnt">0건</span></h2>
+      <div id="list"></div>
+    </div>
+
+    <div class="card" id="cSubmit">
+      <h2>4차시에 마무리해요</h2>
+      <div class="hint" style="margin:0 0 10px">발표가 끝나면 둘 중 하나를 눌러요. 누르면 바로 아래에 개인 성찰지가 열려요. 마감 전이라면 제출한 뒤에도 고칠 수 있어요.</div>
+      <div id="sendBox">
+        <button id="bDone" class="primary" type="button">기록을 마치고 제출</button>
+        <div class="hint" id="hDone"></div>
+        <div style="height:10px"></div>
+        <button id="bNoUse" class="ghost" type="button" style="width:100%">AI를 사용하지 않았어요</button>
+        <div class="hint" id="hNoUse"></div>
+      </div>
+      <div id="sentBox" class="hidden">
+        <div class="msg okm" id="sentMsg" style="margin-top:0"></div>
+        <button id="bUndo" class="ghost small" type="button">제출 취소하고 더 쓰기</button>
+      </div>
+      <div id="eSubmit" class="msg err hidden"></div>
+    </div>
+
+
+    <div class="card hidden" id="cRef">
+      <h2>개인 성찰지 <span class="tag" id="refTag">아직 안 냄</span></h2>
+      <div class="hint" style="margin:0 0 6px">각 칸은 한두 문장이면 충분해요. 글솜씨가 아니라 빠짐없이 썼는지를 봐요.</div>
+      <label for="ra1">① 내가 직접 조사한 사례</label><input id="ra1" type="text" maxlength="200" placeholder="예: 다누리, 제임스웹">
+      <label for="ra2">① 그 사례에서 알게 된 것</label><textarea id="ra2" maxlength="1000"></textarea>
+      <label for="rb1">② 내가 맡은 칸·슬라이드</label><input id="rb1" type="text" maxlength="200" placeholder="예: 계획서 칸 ③, 슬라이드 3">
+      <label for="rb2">② 모둠에서 내가 한 일</label><textarea id="rb2" maxlength="1000"></textarea>
+      <label for="rc">③ 이번 활동에서 새로 알게 된 것, 또는 달라진 생각</label><textarea id="rc" maxlength="1000"></textarea>
+      <label for="rd1">④ 우주탐사가 인류에게 미치는 영향 — 내 생각</label><textarea id="rd1" maxlength="1000"></textarea>
+      <label for="rd2">④ 그렇게 생각하는 근거 (사례·사실·수치)</label><textarea id="rd2" maxlength="1000"></textarea>
+      <label>⑤ AI 활용</label>
+      <div class="msg soft" id="refAi" style="margin:0"></div>
+      <label for="re">⑤ 공식 출처로 확인해서 맞는지 확인한 것 한 가지</label><input id="re" type="text" maxlength="300" placeholder="예: 누리호 4차 발사일을 한국항공우주연구원 자료로 확인">
+      <div id="eRef" class="msg err hidden"></div>
+      <div style="height:12px"></div>
+      <button id="bRef" class="primary" type="button">성찰지 내기</button>
+    </div>
+    <div class="card" id="cPw">
+      <details><summary>비밀번호 바꾸기</summary>
+        <label for="pOld">지금 비밀번호</label><input id="pOld" type="password" autocomplete="current-password">
+        <label for="pNew">새 비밀번호 (4~20자)</label><input id="pNew" type="password" autocomplete="new-password">
+        <label for="pNew2">새 비밀번호 한 번 더</label><input id="pNew2" type="password" autocomplete="new-password">
+        <div id="ePw" class="msg hidden"></div>
+        <div style="height:10px"></div>
+        <button id="bPw" class="ghost" type="button" style="width:100%">비밀번호 바꾸기</button>
+      </details>
+    </div>
+  </div>
+  <div class="foot">이 기록은 선생님만 볼 수 있어요. 이름·학교 같은 개인정보는 AI에 넣지 않아요.<br><span id="ver"></span></div>
+</div>
+
+<script src="config.js"></script>
+<script>
+/* 깃허브 페이지용: google.script.run 을 앱스크립트 통로(doPost) 호출로 바꿔요.
+   구글 로그인 정보(쿠키)를 보내지 않아서, 계정이 여러 개 로그인된 기기에서도 열려요. */
+(function(){
+  var API = String(window.AICARD_API || '').trim();
+  function post(fn, arg){
+    if (!API) return Promise.reject(new Error('NO_API'));
+    return fetch(API, { method: 'POST', redirect: 'follow', credentials: 'omit',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: fn, arg: arg == null ? {} : arg }) })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function runner(ok, fail){
+    return new Proxy({}, { get: function(t, n){
+      if (n === 'withSuccessHandler') return function(f){ return runner(f, fail); };
+      if (n === 'withFailureHandler') return function(f){ return runner(ok, f); };
+      return function(a){ post(n, a).then(function(r){ if (ok) ok(r); }, function(e){ if (fail) fail(e); }); };
+    }});
+  }
+  window.google = { script: { run: runner(null, null) } };
+  if (!API) document.addEventListener('DOMContentLoaded', function(){
+    var n = document.getElementById('notice'); if (n) n.textContent = '선생님: aicard/config.js 에 앱스크립트 주소(AICARD_API)를 넣어 주세요.';
+  });
+})();
+</script>
+<script>
+/* 캔바 링크의 ?from=summary|board|plan|slide → 차시를 미리 골라 둬요 (앱스크립트 doGet과 같은 규칙) */
+var BOOT = (function(){
+  var FROM = { summary: { k: 1, label: '개인 조사 요약' }, board: { k: 2, label: '토론 보드' }, plan: { k: 2, label: '가상 탐사 계획서' }, slide: { k: 3, label: '발표 슬라이드' } };
+  var f = ''; try { f = new URLSearchParams(location.search).get('from') || ''; } catch(e){}
+  return FROM[f] ? { from: f, fromLabel: FROM[f].label, fromK: FROM[f].k } : { from: '', fromLabel: '', fromK: 0 };
+})();
+</script>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var CFG = null, TOKEN = null, ME = null, RECS = [], editId = null, REF = null, refFilled = false;
+  var RKEYS = ['a1','a2','b1','b2','c','d1','d2','e'];
+  var APP_VER = '2026-10-26';   /* Code.gs 의 APP_VER 와 같아야 해요 */
+  $('ver').textContent = '화면 버전 ' + APP_VER;
+  var form = { k:'', ai:'', how:'', parts:[] };
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function show(el, on){ el.classList.toggle('hidden', !on); }
+  function say(id, text, cls){ var e = $(id); if (text){ e.textContent = text; if (cls){ e.className = 'msg ' + cls; } show(e, true); } else show(e, false); }
+  function busy(b, on, t){ if (on){ b.dataset.t = b.textContent; b.disabled = true; b.innerHTML = '<span class="spin"></span>' + t; } else { b.disabled = false; b.textContent = b.dataset.t || b.textContent; } }
+  /* 캔바 링크를 누를 때마다 새 탭이 열려도 다시 로그인하지 않게, 50분 동안 쓰지 않으면 자동으로 나가요 */
+  var IDLE_MS = 50 * 60 * 1000;
+  function store(t){ try { if (t) localStorage.setItem('aicard_t', JSON.stringify({ t: t, at: Date.now() })); else localStorage.removeItem('aicard_t'); } catch(e){} }
+  function stored(){
+    try { var o = JSON.parse(localStorage.getItem('aicard_t') || 'null');
+      if (!o || !o.t) return null;
+      if (Date.now() - o.at > IDLE_MS){ localStorage.removeItem('aicard_t'); return null; }
+      return o.t; } catch(e){ return null; }
+  }
+  function touch(){ if (TOKEN) store(TOKEN); }
+  function call(fn, arg, ok, errId, btn){
+    google.script.run.withSuccessHandler(function(r){
+      if (btn) busy(btn, false);
+      if (r && r.relogin){ toLogin(r.error); return; }
+      if (r && r.mustChange && ME){ ME.mustChange = true; render(ME, null); say('eFirst', r.error, 'err'); return; }
+      if (r && r.error){ if (errId) say(errId, r.error, 'err'); return; }
+      touch(); ok(r);
+    }).withFailureHandler(function(){
+      if (btn) busy(btn, false);
+      if (errId) say(errId, '잠깐 연결이 원활하지 않았어요. 다시 눌러 주세요.', 'err');
+    })[fn](arg);
+  }
+
+  /* 칩 그리기 */
+  function chips(box, items, multi, key, onPick){
+    box.innerHTML = '';
+    items.forEach(function(v){
+      var c = document.createElement('span'); c.className = 'chip'; c.textContent = v; c.dataset.v = v;
+      c.onclick = function(){
+        if (multi){ var i = form[key].indexOf(v); if (i >= 0) form[key].splice(i,1); else form[key].push(v); }
+        else form[key] = (form[key] === v ? '' : v);
+        paint(); if (onPick) onPick();
+      };
+      box.appendChild(c);
+    });
+  }
+  function paint(){
+    [['kSeg','k'],['aiChips','ai'],['howChips','how'],['partChips','parts']].forEach(function(p){
+      [].forEach.call($(p[0]).children, function(c){
+        var v = c.dataset.v, cur = form[p[1]];
+        c.classList.toggle('on', Array.isArray(cur) ? cur.indexOf(v) >= 0 : (cur === v));
+      });
+    });
+    show($('aiOther'), form.ai === '기타');
+  }
+
+  /* 시작: 설정을 못 받으면 세 번까지 다시 시도해요(칩·버튼이 비어 보이는 것 방지) */
+  var cfgTry = 0, afterCfg = null;
+  function loadConfig(){
+    cfgTry++;
+    google.script.run.withSuccessHandler(function(c){
+      if (!c || c.error){ return cfgFail(c && (c.detail || c.error)); }
+      gotConfig(c);
+    }).withFailureHandler(function(e){ cfgFail(e && e.message); }).getConfig();
+  }
+  function cfgFail(why){
+    if (cfgTry < 3){ setTimeout(loadConfig, 800 * cfgTry); return; }
+    $('notice').textContent = '화면 설정을 불러오지 못했어요. 새로고침해 보고, 그래도 안 되면 선생님께 알려 주세요.';
+    $('notice').className = 'msg err';
+    if (why) $('ver').textContent += ' · ' + why;
+  }
+  loadConfig();
+  function gotConfig(c){
+    CFG = c;
+    if (c.ver !== APP_VER){
+      $('ver').textContent = '화면 ' + APP_VER + ' / 서버 ' + (c.ver || '예전 파일') + ' — 버전이 달라요. 선생님께 알려 주세요.';
+      $('ver').style.color = '#a33a3a';
+    }
+    $('title').textContent = c.title; document.title = c.title;
+    $('notice').textContent = c.notice || 'AI를 써도 감점이 아니에요. 쓴 순간 바로 기록해요.';
+    chips($('kSeg'), ['1','2','3'], false, 'k');
+    [].forEach.call($('kSeg').children, function(ch){ ch.textContent = ch.dataset.v + '차시'; });
+    chips($('aiChips'), c.ais.concat(['기타']), false, 'ai');
+    chips($('howChips'), c.hows, false, 'how');
+    chips($('partChips'), c.parts, true, 'parts');
+    resetForm();
+    if (afterCfg){ var f = afterCfg; afterCfg = null; f(); return; }
+    var t = stored();
+    if (t && !TOKEN){ TOKEN = t; load(); }
+  }
+
+  function resetForm(){
+    editId = null;
+    form = { k: BOOT.fromK ? String(BOOT.fromK) : '', ai:'', how:'', parts:[] };
+    $('q').value = ''; $('src').value = ''; $('aiOther').value = '';
+    $('fTitle').textContent = '새 기록 쓰기'; $('bSave').textContent = '기록 저장';
+    show($('bCancel'), false); say('eForm', '');
+    paint();
+  }
+
+  /* 로그인 */
+  $('bLogin').onclick = function(){
+    say('eLogin', '');
+    var sid = $('sid').value.trim(), pw = $('pw').value.trim();
+    if (!sid || !pw){ say('eLogin', '학번과 비밀번호를 모두 적어 주세요.', 'err'); return; }
+    var b = $('bLogin'); busy(b, true, '확인하는 중…');
+    call('login', { sid: sid, pw: pw }, function(r){
+      TOKEN = r.token; store(TOKEN); $('fOld').value = $('pw').value; $('pw').value = '';
+      if (!CFG){ afterCfg = load; cfgTry = 0; loadConfig(); return; }
+      render(r.me, null); load();
+    }, 'eLogin', b);
+  };
+  $('pw').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('bLogin').click(); });
+  $('bOut').onclick = function(){ call('logout', { token: TOKEN }, function(){}, null); toLogin(''); };
+  function toLogin(msg){
+    TOKEN = null; store(null); show($('vMain'), false); show($('vLogin'), true);
+    if (msg) say('eLogin', msg, 'soft');
+  }
+
+  function load(){
+    call('getMine', { token: TOKEN }, function(r){ REF = r.reflection; render(r.me, r.records); }, 'eLogin');
+  }
+
+  function render(me, recs){
+    ME = me; show($('vLogin'), false); show($('vMain'), true);
+    $('who').textContent = me.label;
+    var st = me.status || '아직 제출 전';
+    $('stLine').textContent = '상태: ' + st + (me.submittedAt ? ' (' + me.submittedAt + ')' : '') + (me.deadline ? ' · 마감 ' + me.deadline : '');
+    if (BOOT.from){ say('fromHint', BOOT.fromLabel + ' 쪽에서 왔어요. ' + BOOT.fromK + '차시로 골라 두었어요. 바로 아래에 적고 저장하면 끝이에요.', 'soft'); }
+    show($('lockMsg'), me.locked);
+    var first = !!me.mustChange && !me.locked;
+    show($('cFirst'), first); show($('cPw'), !first);
+    show($('cForm'), !me.locked && !first); show($('cSubmit'), !me.locked && !first);
+    if (first){ show($('cRef'), false); if (recs){ RECS = recs; list(); } return; }
+    if (recs){ RECS = recs; list(); }
+    var n = RECS.length, sent = me.status === '제출 완료' || me.status === '사용하지 않음';
+    show($('sendBox'), !sent); show($('sentBox'), sent);
+    $('sentMsg').textContent = (me.status === '제출 완료' ? '‘기록을 마치고 제출’로 냈어요' : '‘AI를 사용하지 않았어요’로 냈어요') + (me.submittedAt ? ' · ' + me.submittedAt : '') + '. 아래 성찰지를 써 주세요.';
+    $('bDone').disabled = n === 0;
+    $('hDone').textContent = n === 0 ? '기록이 한 건 이상 있어야 누를 수 있어요.' : '내 기록 ' + n + '건을 제출해요.';
+    $('bNoUse').disabled = n > 0;
+    $('hNoUse').textContent = n > 0 ? '이미 기록이 있어서 이 버튼은 쓰지 않아요.' : '1~3차시에 AI를 한 번도 쓰지 않았다면 눌러요.';
+    renderRef();
+  }
+
+  /* 개인 성찰지: AI 카드를 낸 뒤에만 보여요 */
+  function renderRef(){
+    var sent = ME.status === '제출 완료' || ME.status === '사용하지 않음';
+    show($('cRef'), sent || (ME.locked && !!REF));
+    if (!sent && !(ME.locked && REF)) return;
+    var src = RECS.filter(function(r){ return String(r.src).trim(); }).length;
+    $('refAi').textContent = ME.status === '사용하지 않음' ? 'AI 기록카드: ‘사용하지 않음’으로 냈어요.' :
+      'AI 기록카드: 제출 완료 · 기록 ' + RECS.length + '건 · 공식 출처를 적은 기록 ' + src + '건';
+    if (REF && !refFilled){ RKEYS.forEach(function(k){ $('r' + k).value = REF[k] || ''; }); refFilled = true; }
+    $('refTag').textContent = REF ? '냈어요 · ' + (REF.last || REF.first) : '아직 안 냄';
+    $('refTag').className = REF ? 'tag ok' : 'tag';
+    $('bRef').textContent = REF ? '고친 내용 저장' : '성찰지 내기';
+    var ro = ME.locked;
+    RKEYS.forEach(function(k){ $('r' + k).disabled = ro; });
+    show($('bRef'), !ro);
+  }
+  $('bRef').onclick = function(){
+    say('eRef', '');
+    var data = {}; RKEYS.forEach(function(k){ data[k] = $('r' + k).value.trim(); });
+    var empty = RKEYS.slice(0,7).filter(function(k){ return !data[k]; }).length;
+    if (empty && !confirm('아직 비어 있는 칸이 ' + empty + '개 있어요. 그래도 낼까요? (마감 전까지 고칠 수 있어요)')) return;
+    var b = $('bRef'); busy(b, true, '저장하는 중…');
+    call('saveReflection', { token: TOKEN, data: data }, function(r){
+      REF = Object.assign({}, data, { last: r.savedAt, first: (REF && REF.first) || r.savedAt });
+      say('eRef', '성찰지를 냈어요. (' + r.savedAt + ') 마감 전까지는 고칠 수 있어요.', 'okm');
+      renderRef();
+    }, 'eRef', b);
+  };
+
+  function list(){
+    var box = $('list'); box.innerHTML = '';
+    $('cnt').textContent = RECS.length + '건';
+    if (!RECS.length){ box.innerHTML = '<div class="msg soft">아직 기록이 없어요. AI를 썼다면 바로 위에서 적어 주세요.</div>'; return; }
+    RECS.slice().reverse().forEach(function(r){
+      var d = document.createElement('div'); d.className = 'rec';
+      d.innerHTML = '<div class="h"><span><b>' + esc(r.k) + '차시</b> · ' + esc(r.ai) + '</span><span>' + esc(r.ut || r.ts) + (r.ut ? ' 고침' : '') + '</span></div>' +
+        '<div class="q">' + esc(r.q) + '</div>' +
+        '<div class="m">반영: ' + esc(r.how) + ' · ' + esc(r.parts.join(', ')) + '</div>' +
+        '<div class="m">' + (String(r.src).trim() ? '공식 출처: ' + esc(r.src) : (r.how === '이미지 만들기(그림·사진)' ? '<span class="tag">이미지 기록</span>' : '<span class="tag warm">공식 출처를 아직 안 적었어요</span>')) + '</div>';
+      if (!ME.locked){
+        var bx = document.createElement('div'); bx.className = 'btns';
+        var e1 = document.createElement('button'); e1.className = 'ghost small'; e1.type = 'button'; e1.textContent = '고치기';
+        e1.onclick = function(){ edit(r); };
+        var e2 = document.createElement('button'); e2.className = 'ghost small'; e2.type = 'button'; e2.textContent = '지우기';
+        e2.onclick = function(){
+          if (!confirm('이 기록을 지울까요?')) return;
+          call('deleteRecord', { token: TOKEN, id: r.id }, function(){ if (editId === r.id) resetForm(); load(); }, 'eForm');
+        };
+        bx.appendChild(e1); bx.appendChild(e2); d.appendChild(bx);
+      }
+      box.appendChild(d);
+    });
+  }
+
+  function edit(r){
+    editId = r.id;
+    var other = CFG.ais.indexOf(r.ai) < 0 && /^기타: /.test(r.ai);
+    form = { k: String(r.k), ai: other ? '기타' : r.ai, how: r.how, parts: r.parts.slice() };
+    $('aiOther').value = other ? r.ai.replace(/^기타: /, '') : '';
+    $('q').value = r.q; $('src').value = r.src;
+    $('fTitle').textContent = '기록 고치기'; $('bSave').textContent = '고친 내용 저장';
+    show($('bCancel'), true); paint();
+    $('cForm').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  $('bCancel').onclick = resetForm;
+
+  $('bSave').onclick = function(){
+    say('eForm', '');
+    if (!form.k) return say('eForm', '몇 차시에 썼는지 골라 주세요.', 'err');
+    if (!form.ai) return say('eForm', '사용한 AI를 골라 주세요.', 'err');
+    if (!$('q').value.trim()) return say('eForm', '입력한 질문을 붙여 넣거나 요지를 적어 주세요.', 'err');
+    if (!form.how) return say('eForm', '결과를 어떻게 반영했는지 골라 주세요.', 'err');
+    if (!form.parts.length) return say('eForm', '반영한 부분을 하나 이상 골라 주세요.', 'err');
+    var rec = { id: editId, k: form.k, ai: form.ai, aiOther: $('aiOther').value, q: $('q').value, how: form.how, parts: form.parts, src: $('src').value };
+    var b = $('bSave'); busy(b, true, '저장하는 중…');
+    call('saveRecord', { token: TOKEN, rec: rec }, function(r){
+      resetForm(); say('eForm', (r.edited ? '고친 내용을 저장했어요. ' : '저장했어요. ') + '(' + r.savedAt + ')' + (BOOT.from ? ' 이 탭을 닫고 캔바로 돌아가도 돼요.' : ''), 'okm'); load();
+    }, 'eForm', b);
+  };
+
+  function setStatus(status, btn){
+    say('eSubmit', '');
+    busy(btn, true, '처리하는 중…');
+    call('setStatus', { token: TOKEN, status: status }, function(r){
+      say('eSubmit', r.status === '제출 완료' ? '제출했어요. 이제 아래에서 개인 성찰지를 써 주세요.' : r.status === '사용하지 않음' ? '‘사용하지 않음’으로 냈어요. 이제 아래에서 개인 성찰지를 써 주세요.' : '다시 쓸 수 있어요.', 'okm');
+      if (r.status === '제출 완료' || r.status === '사용하지 않음') setTimeout(function(){ $('cRef').scrollIntoView({behavior:'smooth', block:'start'}); }, 600);
+      load();
+    }, 'eSubmit', btn);
+  }
+  $('bDone').onclick = function(){
+    var noSrc = RECS.filter(function(r){ return !String(r.src).trim() && r.how !== '이미지 만들기(그림·사진)'; }).length;
+    if (noSrc && !confirm('공식 출처를 안 적은 기록이 ' + noSrc + '건 있어요. 그래도 제출할까요?')) return;
+    setStatus('제출 완료', $('bDone'));
+  };
+  $('bNoUse').onclick = function(){ if (confirm('1~3차시에 AI를 한 번도 사용하지 않았나요?')) setStatus('사용하지 않음', $('bNoUse')); };
+  $('bUndo').onclick = function(){ setStatus('작성 중', $('bUndo')); };
+
+  $('bFirst').onclick = function(){
+    say('eFirst', '');
+    var o = $('fOld').value.trim(), n1 = $('fNew').value.trim(), n2 = $('fNew2').value.trim();
+    if (!o || !n1) return say('eFirst', '쪽지 비밀번호와 새 비밀번호를 적어 주세요.', 'err');
+    if (n1 !== n2) return say('eFirst', '새 비밀번호 두 개가 서로 달라요.', 'err');
+    var b = $('bFirst'); busy(b, true, '바꾸는 중…');
+    call('changePassword', { token: TOKEN, oldPw: o, newPw: n1 }, function(r){
+      $('fOld').value = $('fNew').value = $('fNew2').value = '';
+      ME.mustChange = false; render(r.me || ME, null); load();
+      say('eForm', '비밀번호를 바꿨어요. 다음부터 새 비밀번호로 들어와요. 이제 기록을 쓸 수 있어요.', 'okm');
+    }, 'eFirst', b);
+  };
+  $('fNew2').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('bFirst').click(); });
+
+  $('bPw').onclick = function(){
+    say('ePw', '');
+    var o = $('pOld').value.trim(), n1 = $('pNew').value.trim(), n2 = $('pNew2').value.trim();
+    if (!o || !n1) return say('ePw', '지금 비밀번호와 새 비밀번호를 적어 주세요.', 'err');
+    if (n1 !== n2) return say('ePw', '새 비밀번호 두 개가 서로 달라요.', 'err');
+    var b = $('bPw'); busy(b, true, '바꾸는 중…');
+    call('changePassword', { token: TOKEN, oldPw: o, newPw: n1 }, function(){
+      $('pOld').value = $('pNew').value = $('pNew2').value = '';
+      say('ePw', '비밀번호를 바꿨어요. 다음부터 새 비밀번호로 들어와요.', 'okm');
+    }, 'ePw', b);
+  };
+})();
+</script>
+</body>
+</html>
+
